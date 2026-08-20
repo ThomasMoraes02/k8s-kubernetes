@@ -8,7 +8,7 @@ spec:
   selector:
     matchLabels:
       app: goserver
-  replicas: 10
+  replicas: 1
   template:
     metadata:
       labels:
@@ -16,13 +16,21 @@ spec:
     spec:
       containers:
       - name: goserver
-        image: "thomasmoraes02/hello-go:latest"
-        resources:
-          requests:
-            cpu: "100m"
-            memory: "128Mi"
-          limits:
-            cpu: "200m"
-            memory: "256Mi"
+        image: "thomasmoraes02/hello-go:v4"
+        envFrom:
+          - configMapRef:
+              name: goserver-env
+
+        # Alternativas
+        # env:
+        #   - name: NAME
+        #     valueFrom:
+        #       configMapKeyRef:
+        #         name: goserver-env
+        #         key: NAME
+
+        #   # tem esse caminho
+        #   - name: AGE
+        #     value: "26"
         ports:
         - containerPort: 8080
