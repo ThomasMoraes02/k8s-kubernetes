@@ -121,47 +121,44 @@ outros dois tipos de probe.
 
 ## Como isso se conecta com a rota `/healthz` deste projeto
 
-O handler `Healthz` em [server.go](../server.go#L40-L50) não verifica nada de
-verdade — ele simula deliberadamente uma janela de saúde baseada no tempo
-de vida (`uptime`) do processo:
+O handler `Healthz` em [server.go](../server.go#L40-L49) simula
+deliberadamente uma janela de **boot lento**, baseada no tempo de vida
+(`uptime`) do processo:
 
 ```go
 func Healthz(w http.ResponseWriter, r *http.Request) {
 	duration := time.Since(startedAt)
 
-	if duration.Seconds() < 10 || duration.Seconds() > 30 {
+	if duration.Seconds() < 10 {
 		w.WriteHeader(500)
-		...
+		w.Write([]byte(fmt.Sprintf("Duration: %v", duration.Seconds())))
 	} else {
-		w.WriteHeader(http.StatusOK)
-		...
+		w.WriteHeader(200)
+		w.Write([]byte("ok"))
 	}
 }
 ```
 
-Ou seja: `500` enquanto o container tem **menos de 10s** de vida, `200`
-entre **10s e 30s**, e `500` de novo depois de **30s**. Cruzando isso com os
-tempos das duas probes acima, dá pra prever exatamente o ciclo de vida do
-Pod:
+Ou seja: `500` enquanto o container tem **menos de 10s** de vida, e `200`
+**para sempre** depois disso. Cruzando isso com os tempos das três probes:
 
 | Tempo (uptime) | `/healthz` | O que acontece |
 |---|---|---|
-| `0s` – `10s` | `500` | Pod ainda não sofreu a 1ª checagem de readiness (`initialDelaySeconds: 10`); fica `READY 0/1` |
-| `10s` (1ª readiness) | `200` | Readiness passa → Pod entra `READY 1/1`, Service passa a mandar tráfego |
-| `15s` (1ª liveness) | `200` | Liveness passa → container segue vivo, sem reiniciar |
-| `10s` – `30s` | `200` | Pod saudável e recebendo tráfego normalmente |
-| `~31s` (readiness, período de 3s: 10,13,...,28,31) | `500` | 1ª falha já tira o Pod da rota (`failureThreshold: 1`) → volta a `READY 0/1`, mas o **container continua rodando** |
-| `~35s` (liveness, período de 5s: 15,20,25,30,35) | `500` | 1ª falha já derruba o container (`failureThreshold: 1`) → kubelet mata e recria o container |
-| depois do restart | — | `startedAt` reseta, o ciclo inteiro recomeça do zero |
+| `0s` – `10s` | `500` | `startupProbe` ainda checando (a cada 3s); `readinessProbe`/`livenessProbe` ficam pausadas até ela passar |
+| `10s` (1ª checagem que bate `duration >= 10`) | `200` | `startupProbe` passa → kubelet libera `readinessProbe`/`livenessProbe` para começar |
+| a partir daqui | `200` sempre | Pod fica `READY 1/1` e nunca mais falha nenhuma probe por conta própria |
 
-O ponto didático aqui: como `periodSeconds` da readiness (3s) é menor que o
-da liveness (5s) e o `initialDelaySeconds` da liveness é maior (15s vs 10s),
-a **readiness sempre detecta o problema primeiro** (~31s) e só remove o Pod
-da rota do Service — sem matar nada. A **liveness detecta um pouco depois**
-(~35s) e aí sim reinicia o container. Rodando
-`kubectl get pods -w` (ou `watch -n1 kubectl get pods`) dá pra ver esse
-ciclo se repetindo: `0/1` → `1/1` → `0/1` (ready falha) → restart → `0/1` →
-`1/1` → ...
+Repare que esse handler **já existiu com outro comportamento**: uma versão
+anterior (preservada em [server.go](../server.go#L52-L63) como
+`HealthzOld`, comentada) também voltava a devolver `500` depois de `30s` de
+vida, criando um ciclo infinito de restart. Isso foi proposital — servia
+para observar o ciclo completo `readinessProbe` → `livenessProbe` → restart
+descrito nas seções acima. Só que esse ciclo **atrapalha** o teste de HPA
+(ver [autoscaling.md](autoscaling.md)): um Pod sendo morto e recriado a
+cada ~35s durante um teste de carga sustentado confunde a leitura de CPU
+do HPA. Por isso o handler atual só simula um **boot lento de 10s** e
+depois fica estável — ideal para observar `startupProbe`/`readinessProbe`
+na inicialização, sem interferir num teste de autoscaling que dura minutos.
 
 ## Preciso das três no Deployment, ou uma já basta?
 

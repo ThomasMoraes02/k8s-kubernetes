@@ -10,11 +10,11 @@ qual o HPA calcula tudo.
 ```yaml
 resources:
   requests:
-    cpu: "100m"
-    memory: "128Mi"
+    cpu: "0.05"
+    memory: "20Mi"
   limits:
-    cpu: "250m"
-    memory: "256Mi"
+    cpu: "0.05"
+    memory: "25Mi"
 ```
 
 (bloco real do [k8s/deployment.yaml](../k8s/deployment.yaml))
@@ -28,8 +28,16 @@ resources:
     faz *throttling* (a aplicação fica mais lenta, "engasgando").
   - Ultrapassar o `limits.memory` **mata o container** imediatamente
     (`OOMKilled`), pois memória não pode ser "throttled" como CPU.
-- Unidades: CPU em **millicores** (`100m` = 0,1 vCPU; `1000m` = 1 vCPU
-  inteira); memória em `Mi` (mebibytes) ou `Gi` (gibibytes).
+- Unidades: CPU em **millicores** (`1000m` = 1 vCPU inteira) **ou** em
+  fração de vCPU (`"0.05"` é exatamente equivalente a `"50m"` — este
+  projeto usa a notação fracionária); memória em `Mi` (mebibytes) ou `Gi`
+  (gibibytes).
+- Aqui `requests.cpu` e `limits.cpu` são **iguais** (`0.05` = `0.05`), mas
+  `requests.memory` (`20Mi`) e `limits.memory` (`25Mi`) **não são**. Isso
+  define a **QoS Class** do Pod: só é `Guaranteed` quando request == limit
+  em **todos** os recursos, de **todos** os containers; bastando um
+  recurso divergir (aqui, a memória), o Pod cai para `Burstable`. Confira
+  com `kubectl get pod <nome> -o jsonpath='{.status.qosClass}'`.
 - Sem `requests` definido, o scheduler não sabe quanto reservar (pode
   empilhar Pods demais em um node) e **o HPA baseado em CPU não funciona**,
   porque a porcentagem de utilização é sempre calculada em relação ao
@@ -58,13 +66,15 @@ Fórmula (simplificada, para métrica de CPU):
 réplicas desejadas = ceil( réplicas atuais × (uso atual / uso alvo) )
 ```
 
-Exemplo com o `requests.cpu: 100m` deste projeto e um alvo de 50%:
+Exemplo com o `requests.cpu: 0.05` (`50m`) deste projeto e o alvo real de
+25% do `k8s/hpa.yaml`:
 
-- Uso alvo = 50% de `100m` = `50m` por Pod.
-- Se a **média** de uso entre os Pods está em `80m` (80% de utilização):
-  `réplicas desejadas = ceil(1 × (80/50)) = 2` → o HPA sobe para 2 réplicas.
-- Se depois a média cai para `20m` (20%): `ceil(2 × (20/50)) = 1` → volta
-  para 1 réplica.
+- Uso alvo = 25% de `50m` = `12,5m` por Pod.
+- Se a **média** de uso entre os Pods está em `25m` (50% de utilização):
+  `réplicas desejadas = ceil(1 × (25/12,5)) = 2` → o HPA sobe para 2
+  réplicas.
+- Se depois a média cai para `6m` (~12% de utilização):
+  `ceil(2 × (6/12,5)) = 1` → volta para 1 réplica.
 
 Ou seja: **é sempre uma porcentagem do `requests`, não do `limits`.**
 
@@ -82,18 +92,23 @@ spec:
     kind: Deployment
   # Escala no máximo 5 replicas
   minReplicas: 1
-  maxReplicas: 5
+  maxReplicas: 30
   targetCPUUtilizationPercentage: 25
 ```
 
 - `scaleTargetRef`: aponta para o Deployment que o HPA vai controlar
   (`goserver`, o mesmo do [deployments.md](deployments.md)).
 - `minReplicas` / `maxReplicas`: piso e teto de réplicas — o HPA nunca sai
-  desse intervalo (aqui, entre 1 e 5), mesmo em picos extremos de carga.
+  desse intervalo (aqui, entre 1 e 30), mesmo em picos extremos de carga.
+  ⚠️ Repare que o comentário no próprio arquivo (`# Escala no máximo 5
+  replicas`) ficou **desatualizado** — o valor real de `maxReplicas` é
+  `30`. Comentários em YAML não são validados por nada, então é fácil
+  ficarem defasados depois de um ajuste; vale corrigir o texto do
+  comentário para não confundir quem ler o manifest depois.
 - `targetCPUUtilizationPercentage: 25`: mantém a **média** de uso de CPU
-  entre os Pods em torno de 25% do `requests.cpu` (`100m` → alvo de `25m`
-  por Pod) — bem mais sensível que os 50% usados como exemplo mais acima,
-  então esse HPA escala com uma carga relativamente baixa.
+  entre os Pods em torno de 25% do `requests.cpu` (`50m` → alvo de
+  `12,5m` por Pod) — um alvo bem sensível, então esse HPA escala com uma
+  carga relativamente baixa.
 
 Aplique com:
 
@@ -293,20 +308,28 @@ justamente o que `--generator=run-pod/v1` pedia manualmente antes), então
 o flag ficou não só desnecessário como inválido. O comando correto hoje é
 o de cima, sem esse flag.
 
-### Por que testar contra `/healthz` gera respostas `500` misturadas
+### Por que pode aparecer algum `500` isolado no relatório do fortio
 
 O alvo do teste é a mesma rota `/healthz` documentada em
-[probes.md](probes.md#como-isso-se-conecta-com-a-rota-healthz-deste-projeto),
-que devolve `500` propositalmente fora da janela de `10s`–`30s` de uptime
-de cada Pod. Durante o teste de carga isso tem dois efeitos combinados:
-qualquer Pod que já passou dos 30s de vida vai devolver `500` para o
-fortio até a `livenessProbe` derrubá-lo e ele reiniciar — e, se o HPA criar
-Pods novos no meio do teste (reagindo à CPU gerada pela própria carga),
-cada Pod novo passa pelos primeiros ~10s recebendo `500` até a
-`readinessProbe` liberá-lo para tráfego. Então uma taxa de erro
-diferente de zero no relatório final do fortio é **esperada neste
-projeto** — não é sinal de falha do teste, é a rota `/healthz` fazendo
-exatamente o que foi desenhada para fazer.
+[probes.md](probes.md#como-isso-se-conecta-com-a-rota-healthz-deste-projeto):
+ela simula um boot de `10s` (devolve `500` até lá) e depois fica saudável
+**para sempre** — diferente de uma versão anterior do handler (preservada
+comentada em [server.go](../server.go#L52-L63) como `HealthzOld`) que
+voltava a falhar depois de `30s` e forçava um restart em loop. Essa versão
+antiga foi desativada **de propósito** porque atrapalharia justamente este
+teste: um Pod sendo derrubado pela `livenessProbe` no meio de um teste de
+carga sustentado (120s) distorceria a leitura de CPU do HPA.
+
+Com o handler atual, a única fonte esperada de `500` durante o teste é o
+Service mandando tráfego para **Pods novos** ainda nos primeiros 10s de
+vida — o que só acontece se o HPA criar réplicas novas no meio do teste
+(reagindo à própria carga do fortio) e, mesmo assim, a `readinessProbe`
+normalmente já tira esses Pods da rota antes de qualquer requisição
+externa chegar até eles. Ou seja: numa execução normal, é esperado ver a
+taxa de erro do fortio em `0%` (ou bem próxima disso) — se aparecer um
+volume alto de `500`, é sinal de investigar (`kubectl describe pod`,
+`kubectl logs`), não um comportamento propositalmente simulado como era
+antes.
 
 ### Setup completo: 3 terminais
 
