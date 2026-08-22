@@ -25,7 +25,8 @@ kubernetes/
     ├── services.md     # conceito de Service
     ├── kind.md         # criar cluster local e carregar imagens
     ├── kubectl.md       # comandos do kubectl
-    └── golang.md        # build/run da imagem Docker
+    ├── golang.md        # build/run da imagem Docker
+    └── lens.md          # Lens (IDE gráfica), incluindo conexão com EKS
 ```
 
 ## Fluxo completo (do zero até acessar o app)
@@ -71,3 +72,4 @@ kubernetes/
 7. [kind.md](kind.md) — rodando um cluster localmente com Docker
 8. [kubectl.md](kubectl.md) — comandos do dia a dia
 9. [golang.md](golang.md) — build e execução da imagem da aplicação
+10. [lens.md](lens.md) — IDE gráfica para Kubernetes, incluindo conexão com EKS

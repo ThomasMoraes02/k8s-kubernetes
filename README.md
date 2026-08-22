@@ -587,6 +587,7 @@ adicionais e o histórico de decisões, veja [docs/](docs/README.md):
 | [docs/kind.md](docs/kind.md) | Cluster local e carregamento de imagens |
 | [docs/kubectl.md](docs/kubectl.md) | Comandos do dia a dia |
 | [docs/golang.md](docs/golang.md) | Build, push e por que versionar a imagem |
+| [docs/lens.md](docs/lens.md) | Lens (IDE gráfica para Kubernetes), incluindo conexão com AWS EKS |
 
 ---
 
