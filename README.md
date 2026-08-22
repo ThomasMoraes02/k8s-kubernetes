@@ -218,7 +218,9 @@ kubernetes/
 │   ├── metrics-server.yaml     # Instalação do metrics-server, adaptada para kind
 │   ├── statefulset.yaml        # StatefulSet de MySQL (laboratório de volumes)
 │   ├── mysql-service.yaml      # Service headless que dá identidade de rede ao StatefulSet
-│   └── pvc.yaml                # PersistentVolumeClaim avulsa (montada no Deployment goserver)
+│   ├── pvc.yaml                # PersistentVolumeClaim avulsa (montada no Deployment goserver)
+│   ├── ingress-nginx.yaml      # Instalação do controller ingress-nginx (adaptada para kind)
+│   └── ingress.yaml            # Ingress roteando goserver.local -> goserver-service
 └── docs/                      # documentação aprofundada (em português)
     ├── README.md                # índice e fluxo completo
     ├── kubernetes.md             # cluster, nodes
@@ -591,6 +593,7 @@ adicionais e o histórico de decisões, veja [docs/](docs/README.md):
 | [docs/kubectl.md](docs/kubectl.md) | Comandos do dia a dia |
 | [docs/golang.md](docs/golang.md) | Build, push e por que versionar a imagem |
 | [docs/statefulsets.md](docs/statefulsets.md) | StatefulSet e PersistentVolumeClaim (laboratório de MySQL) |
+| [docs/ingress.md](docs/ingress.md) | Ingress e ingress-nginx, roteamento HTTP por host/path |
 | [docs/lens.md](docs/lens.md) | Lens (IDE gráfica para Kubernetes), incluindo conexão com AWS EKS |
 
 ---

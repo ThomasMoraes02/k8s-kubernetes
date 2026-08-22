@@ -26,6 +26,7 @@ kubernetes/
     ├── autoscaling.md  # resources/limits e HPA
     ├── statefulsets.md # StatefulSet e PVC (MySQL)
     ├── services.md     # conceito de Service
+    ├── ingress.md      # Ingress e ingress-nginx
     ├── kind.md         # criar cluster local e carregar imagens
     ├── kubectl.md       # comandos do kubectl
     ├── golang.md        # build/run da imagem Docker
@@ -73,7 +74,8 @@ kubernetes/
 5. [autoscaling.md](autoscaling.md) — resources/limits e HPA
 6. [statefulsets.md](statefulsets.md) — StatefulSet e PVC (MySQL)
 7. [services.md](services.md) — expondo os Pods na rede
-8. [kind.md](kind.md) — rodando um cluster localmente com Docker
-9. [kubectl.md](kubectl.md) — comandos do dia a dia
-10. [golang.md](golang.md) — build e execução da imagem da aplicação
-11. [lens.md](lens.md) — IDE gráfica para Kubernetes, incluindo conexão com EKS
+8. [ingress.md](ingress.md) — roteamento HTTP por host/path com ingress-nginx
+9. [kind.md](kind.md) — rodando um cluster localmente com Docker
+10. [kubectl.md](kubectl.md) — comandos do dia a dia
+11. [golang.md](golang.md) — build e execução da imagem da aplicação
+12. [lens.md](lens.md) — IDE gráfica para Kubernetes, incluindo conexão com EKS
