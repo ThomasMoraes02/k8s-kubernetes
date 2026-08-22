@@ -15,13 +15,16 @@ kubernetes/
 │   ├── pod.yaml        # Pod isolado (uso didático)
 │   ├── deployment.yaml # Deployment com probes configuradas
 │   ├── service.yaml    # Service tipo LoadBalancer
-│   └── metrics-server.yaml # metrics-server (pré-requisito do HPA)
+│   ├── metrics-server.yaml # metrics-server (pré-requisito do HPA)
+│   ├── statefulset.yaml # StatefulSet de MySQL (laboratório de volumes)
+│   └── mysql-service.yaml # Service headless do StatefulSet
 └── docs/              # esta documentação
     ├── kubernetes.md   # conceitos: cluster, nodes, o que é k8s
     ├── pods.md         # conceito de Pod
     ├── deployments.md  # conceito de Deployment
     ├── probes.md       # liveness, readiness e startup probes
     ├── autoscaling.md  # resources/limits e HPA
+    ├── statefulsets.md # StatefulSet e PVC (MySQL)
     ├── services.md     # conceito de Service
     ├── kind.md         # criar cluster local e carregar imagens
     ├── kubectl.md       # comandos do kubectl
@@ -68,8 +71,9 @@ kubernetes/
 3. [deployments.md](deployments.md) — gerenciando réplicas de Pods
 4. [probes.md](probes.md) — liveness, readiness e startup probes
 5. [autoscaling.md](autoscaling.md) — resources/limits e HPA
-6. [services.md](services.md) — expondo os Pods na rede
-7. [kind.md](kind.md) — rodando um cluster localmente com Docker
-8. [kubectl.md](kubectl.md) — comandos do dia a dia
-9. [golang.md](golang.md) — build e execução da imagem da aplicação
-10. [lens.md](lens.md) — IDE gráfica para Kubernetes, incluindo conexão com EKS
+6. [statefulsets.md](statefulsets.md) — StatefulSet e PVC (MySQL)
+7. [services.md](services.md) — expondo os Pods na rede
+8. [kind.md](kind.md) — rodando um cluster localmente com Docker
+9. [kubectl.md](kubectl.md) — comandos do dia a dia
+10. [golang.md](golang.md) — build e execução da imagem da aplicação
+11. [lens.md](lens.md) — IDE gráfica para Kubernetes, incluindo conexão com EKS

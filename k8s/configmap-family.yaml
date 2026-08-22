@@ -3,4 +3,4 @@ kind: ConfigMap
 metadata:
   name: configmap-family
 data:
-  members: "Thomas, Caique, Isabella, Igor"
+  family.txt: "Thomas, Caique, Isabella, Igor"

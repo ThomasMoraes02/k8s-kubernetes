@@ -59,7 +59,13 @@ spec:
             cpu: "0.05"
             memory: "25Mi"
 
-            
+        volumeMounts:
+          - mountPath: "/go/myfamily"
+            name: config
+            readOnly: true
+          - mountPath: "/go/pvc"
+            name: goserver-volume
+
         envFrom:
           - configMapRef:
               name: goserver-env
@@ -77,3 +83,11 @@ spec:
         #     value: "26"
         ports:
         - containerPort: 8080
+
+      volumes:
+        - name: config
+          configMap:
+            name: configmap-family
+        - name: goserver-volume
+          persistentVolumeClaim:
+            claimName: goserver-pvc
