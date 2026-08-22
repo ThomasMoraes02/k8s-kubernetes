@@ -16,7 +16,44 @@ spec:
     spec:
       containers:
       - name: goserver
-        image: "thomasmoraes02/hello-go:v4"
+        image: "thomasmoraes02/hello-go:v5.5"
+        
+        startupProbe:
+          httpGet:
+            path: /healthz
+            port: 80
+          periodSeconds: 3
+          failureThreshold: 30
+          
+        # Sem mandar tráfego para a aplicação
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 80
+          periodSeconds: 3
+          failureThreshold: 1
+          initialDelaySeconds: 10
+
+        # Faz uma requisição interna para o container
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 80
+          periodSeconds: 5
+          failureThreshold: 1
+          timeoutSeconds: 1
+          successThreshold: 1
+          initialDelaySeconds: 15
+
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "250m"
+            memory: "256Mi"
+
+            
         envFrom:
           - configMapRef:
               name: goserver-env

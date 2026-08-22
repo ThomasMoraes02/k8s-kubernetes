@@ -90,4 +90,6 @@ kubectl rollout status deployment goserver     # acompanha um rollout
 kubectl rollout history deployment goserver    # histórico de revisões
 kubectl rollout undo deployment goserver        # rollback para a anterior
 kubectl delete -f k8s/deployment.yaml          # remove o Deployment
+
+kubectl apply -f k8s/deployment.yaml && watch -n1 kubectl get pods
 ```

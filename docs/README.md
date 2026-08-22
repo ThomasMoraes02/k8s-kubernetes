@@ -19,6 +19,7 @@ kubernetes/
     ├── kubernetes.md   # conceitos: cluster, nodes, o que é k8s
     ├── pods.md         # conceito de Pod
     ├── deployments.md  # conceito de Deployment
+    ├── probes.md       # liveness e readiness probes
     ├── services.md     # conceito de Service
     ├── kind.md         # criar cluster local e carregar imagens
     ├── kubectl.md       # comandos do kubectl
@@ -62,7 +63,8 @@ kubernetes/
 1. [kubernetes.md](kubernetes.md) — o que é Kubernetes, cluster e nodes
 2. [pods.md](pods.md) — a menor unidade do Kubernetes
 3. [deployments.md](deployments.md) — gerenciando réplicas de Pods
-4. [services.md](services.md) — expondo os Pods na rede
-5. [kind.md](kind.md) — rodando um cluster localmente com Docker
-6. [kubectl.md](kubectl.md) — comandos do dia a dia
-7. [golang.md](golang.md) — build e execução da imagem da aplicação
+4. [probes.md](probes.md) — liveness e readiness probes
+5. [services.md](services.md) — expondo os Pods na rede
+6. [kind.md](kind.md) — rodando um cluster localmente com Docker
+7. [kubectl.md](kubectl.md) — comandos do dia a dia
+8. [golang.md](golang.md) — build e execução da imagem da aplicação
