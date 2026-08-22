@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: goserver
-        image: "thomasmoraes02/hello-go:v5.5"
+        image: "thomasmoraes02/hello-go:v5.6"
         
         startupProbe:
           httpGet:
@@ -45,13 +45,19 @@ spec:
           successThreshold: 1
           initialDelaySeconds: 15
 
+        # Recursos
         resources:
+          # O minimo que a aplicação precisa para rodar
+          # Estamos reservando esses recursos do nosso cluster para esse POD
           requests:
-            cpu: "100m"
-            memory: "128Mi"
+            # Unidade de medida de CPU: vCPU -> 1000m (milicores) 
+            cpu: "0.05"
+            memory: "20Mi"
+          
+          # Até onde o POD pode usar de recursos do nosso cluster
           limits:
-            cpu: "250m"
-            memory: "256Mi"
+            cpu: "0.05"
+            memory: "25Mi"
 
             
         envFrom:

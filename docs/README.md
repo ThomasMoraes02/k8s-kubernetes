@@ -13,13 +13,15 @@ kubernetes/
 ├── Dockerfile        # build da imagem golang:1.15-alpine
 ├── k8s/
 │   ├── pod.yaml        # Pod isolado (uso didático)
-│   ├── deployment.yaml # Deployment com 10 réplicas
-│   └── service.yaml    # Service tipo LoadBalancer
+│   ├── deployment.yaml # Deployment com probes configuradas
+│   ├── service.yaml    # Service tipo LoadBalancer
+│   └── metrics-server.yaml # metrics-server (pré-requisito do HPA)
 └── docs/              # esta documentação
     ├── kubernetes.md   # conceitos: cluster, nodes, o que é k8s
     ├── pods.md         # conceito de Pod
     ├── deployments.md  # conceito de Deployment
-    ├── probes.md       # liveness e readiness probes
+    ├── probes.md       # liveness, readiness e startup probes
+    ├── autoscaling.md  # resources/limits e HPA
     ├── services.md     # conceito de Service
     ├── kind.md         # criar cluster local e carregar imagens
     ├── kubectl.md       # comandos do kubectl
@@ -63,8 +65,9 @@ kubernetes/
 1. [kubernetes.md](kubernetes.md) — o que é Kubernetes, cluster e nodes
 2. [pods.md](pods.md) — a menor unidade do Kubernetes
 3. [deployments.md](deployments.md) — gerenciando réplicas de Pods
-4. [probes.md](probes.md) — liveness e readiness probes
-5. [services.md](services.md) — expondo os Pods na rede
-6. [kind.md](kind.md) — rodando um cluster localmente com Docker
-7. [kubectl.md](kubectl.md) — comandos do dia a dia
-8. [golang.md](golang.md) — build e execução da imagem da aplicação
+4. [probes.md](probes.md) — liveness, readiness e startup probes
+5. [autoscaling.md](autoscaling.md) — resources/limits e HPA
+6. [services.md](services.md) — expondo os Pods na rede
+7. [kind.md](kind.md) — rodando um cluster localmente com Docker
+8. [kubectl.md](kubectl.md) — comandos do dia a dia
+9. [golang.md](golang.md) — build e execução da imagem da aplicação

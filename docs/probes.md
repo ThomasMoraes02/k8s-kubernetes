@@ -6,9 +6,8 @@ Sem probes, o Kubernetes só sabe se o processo dentro do container está de
 pé (PID rodando) — não sabe se a aplicação está de fato respondendo ou
 pronta para receber tráfego.
 
-Existem três tipos de probe. Este projeto usa as duas primeiras no
-`deployment.yaml`; a terceira é documentada abaixo por completude, com um
-exemplo hipotético.
+Existem três tipos de probe, e este projeto usa as três no
+`deployment.yaml`.
 
 - **livenessProbe** — "o processo está vivo?"
 - **readinessProbe** — "o processo está pronto para receber tráfego?"
@@ -93,9 +92,12 @@ startupProbe:
   httpGet:
     path: /healthz
     port: 80
-  periodSeconds: 5
-  failureThreshold: 30   # 30 x 5s = até 150s para o processo inicializar
+  periodSeconds: 3
+  failureThreshold: 30
 ```
+
+(bloco real do [k8s/deployment.yaml](../k8s/deployment.yaml) — janela de até
+`30 × 3s = 90s` para o processo inicializar)
 
 - Objetivo: dar uma **janela de tolerância só para o boot**, sem precisar
   inflar o `initialDelaySeconds`/`failureThreshold` da `livenessProbe` para
@@ -107,14 +109,15 @@ startupProbe:
 - Não existe `readinessProbe`/`livenessProbe` "correndo em paralelo" durante
   esse período: é uma fase exclusiva, sequencial.
 
-### Por que este projeto não tem uma
+### Ela é realmente necessária aqui?
 
-O binário Go deste projeto sobe em milissegundos e a rota `/healthz`
-responde imediatamente (mesmo que "falsamente" `500` nos primeiros 10s, por
-causa da lógica descrita abaixo). Não existe boot lento e variável para
-proteger — o `initialDelaySeconds: 15` da `livenessProbe` já é suficiente
-para cobrir essa janela fixa e curta. Uma `startupProbe` existe pra resolver
-um problema que este projeto não tem.
+Na prática, não muito: o binário Go sobe em milissegundos e a rota
+`/healthz` já responde de imediato (mesmo que "falsamente" `500` nos
+primeiros 10s, por causa da lógica descrita abaixo). Não existe boot lento
+e variável para proteger — o `initialDelaySeconds: 15` da `livenessProbe`
+sozinho já cobriria essa janela fixa e curta. Ela está presente aqui com
+fins didáticos, para o comportamento poder ser comparado na prática com os
+outros dois tipos de probe.
 
 ## Como isso se conecta com a rota `/healthz` deste projeto
 
